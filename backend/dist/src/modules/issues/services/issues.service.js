@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IssuesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../infrastructure/database/prisma/prisma.service");
+const email_service_1 = require("../../../infrastructure/email/email.service");
 const projects_service_1 = require("../../projects/services/projects.service");
 const enums_1 = require("../../../common/constants/enums");
 const ALLOWED_TRANSITIONS = {
@@ -23,9 +24,87 @@ const ALLOWED_TRANSITIONS = {
     Reopened: [enums_1.IssueStatus.InProgress, enums_1.IssueStatus.Open],
 };
 let IssuesService = class IssuesService {
-    constructor(prisma, projectsService) {
+    constructor(prisma, projectsService, emailService) {
         this.prisma = prisma;
         this.projectsService = projectsService;
+        this.emailService = emailService;
+    }
+    async collectIssueNotifyEmails(reporterId, assigneeId) {
+        const byLower = new Map();
+        const add = (raw) => {
+            const t = raw?.trim();
+            if (!t)
+                return;
+            const k = t.toLowerCase();
+            if (!byLower.has(k))
+                byLower.set(k, t);
+        };
+        if (reporterId) {
+            const u = await this.prisma.user.findUnique({
+                where: { id: reporterId },
+                select: { email: true },
+            });
+            add(u?.email);
+        }
+        if (assigneeId) {
+            const emp = await this.prisma.employee.findUnique({
+                where: { id: assigneeId },
+                select: { email: true },
+            });
+            add(emp?.email ?? undefined);
+            if (!emp?.email?.trim()) {
+                const linked = await this.prisma.user.findFirst({
+                    where: { employeeId: assigneeId },
+                    select: { email: true },
+                });
+                add(linked?.email);
+            }
+        }
+        return [...byLower.values()];
+    }
+    fireIssueCreatedEmail(issue) {
+        void (async () => {
+            const toEmails = await this.collectIssueNotifyEmails(issue.reporterId, issue.assigneeId);
+            if (!toEmails.length)
+                return;
+            const reporter = issue.reporterId
+                ? await this.prisma.user.findUnique({
+                    where: { id: issue.reporterId },
+                    select: { name: true },
+                })
+                : null;
+            await this.emailService.sendIssueCreated({
+                toEmails,
+                defectNo: issue.defectNo,
+                title: issue.title,
+                projectName: issue.project.name,
+                priority: String(issue.priority),
+                status: String(issue.status),
+                issueId: issue.id,
+                reportedByName: reporter?.name ?? 'A team member',
+            });
+        })();
+    }
+    fireIssueStatusChangedEmail(issue, previousStatus, newStatus, actorUserId) {
+        void (async () => {
+            const toEmails = await this.collectIssueNotifyEmails(issue.reporterId, issue.assigneeId);
+            if (!toEmails.length)
+                return;
+            const actor = await this.prisma.user.findUnique({
+                where: { id: actorUserId },
+                select: { name: true },
+            });
+            await this.emailService.sendIssueStatusChanged({
+                toEmails,
+                defectNo: issue.defectNo,
+                title: issue.title,
+                projectName: issue.project.name,
+                previousStatus,
+                newStatus,
+                issueId: issue.id,
+                changedByName: actor?.name,
+            });
+        })();
     }
     async enrichIssue(issue) {
         const [employees, users] = await Promise.all([
@@ -191,6 +270,16 @@ let IssuesService = class IssuesService {
                     projectId: issue.projectId,
                 },
             });
+            this.fireIssueCreatedEmail({
+                id: issue.id,
+                defectNo: issue.defectNo,
+                title: issue.title,
+                status: issue.status,
+                priority: issue.priority,
+                reporterId: issue.reporterId,
+                assigneeId: issue.assigneeId,
+                project: issue.project,
+            });
             return this.enrichIssue(issue);
         }
         catch (err) {
@@ -205,6 +294,7 @@ let IssuesService = class IssuesService {
         const issue = await this.prisma.issue.findUnique({ where: { id } });
         if (!issue)
             throw new common_1.NotFoundException(`Issue #${id} not found`);
+        const previousStatus = issue.status;
         if (dto.status && dto.status !== issue.status) {
             const allowed = ALLOWED_TRANSITIONS[issue.status] ?? [];
             if (!allowed.includes(dto.status)) {
@@ -253,10 +343,23 @@ let IssuesService = class IssuesService {
                 projectId: updated.projectId,
             },
         });
+        if (dto.status !== undefined && dto.status !== previousStatus) {
+            this.fireIssueStatusChangedEmail({
+                id: updated.id,
+                defectNo: updated.defectNo,
+                title: updated.title,
+                reporterId: updated.reporterId,
+                assigneeId: updated.assigneeId,
+                project: updated.project,
+            }, previousStatus, dto.status, userId);
+        }
         return this.enrichIssue(updated);
     }
     async addComment(issueId, dto, userId) {
-        const issue = await this.prisma.issue.findUnique({ where: { id: issueId } });
+        const issue = await this.prisma.issue.findUnique({
+            where: { id: issueId },
+            include: { project: true },
+        });
         if (!issue)
             throw new common_1.NotFoundException(`Issue #${issueId} not found`);
         if (dto.statusChange && dto.statusChange !== issue.status) {
@@ -309,6 +412,14 @@ let IssuesService = class IssuesService {
                     projectId: issue.projectId,
                 },
             });
+            this.fireIssueStatusChangedEmail({
+                id: issue.id,
+                defectNo: issue.defectNo,
+                title: issue.title,
+                reporterId: issue.reporterId,
+                assigneeId: issue.assigneeId,
+                project: issue.project,
+            }, issue.status, dto.statusChange, userId);
         }
         let userComment = null;
         const bodyText = dto.reopenReason
@@ -376,6 +487,7 @@ exports.IssuesService = IssuesService;
 exports.IssuesService = IssuesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        projects_service_1.ProjectsService])
+        projects_service_1.ProjectsService,
+        email_service_1.EmailService])
 ], IssuesService);
 //# sourceMappingURL=issues.service.js.map

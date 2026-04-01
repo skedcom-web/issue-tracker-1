@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { ISSUE_CREATED_EVENT } from '@components/layout/MainLayout';
 import {
   Box, Paper, Table, TableHead, TableBody, TableRow, TableCell,
   TextField, Select, MenuItem, FormControl, Button, Typography,
@@ -71,6 +72,13 @@ const MyIssuesPage: React.FC = () => {
   useEffect(() => {
     projectsApi.getAll().then((r) => setProjects(r.data.data));
     loadAll();
+  }, [loadAll]);
+
+  // ── Auto-refresh when a new issue is created via the modal ──────
+  useEffect(() => {
+    const handler = () => loadAll();
+    window.addEventListener(ISSUE_CREATED_EVENT, handler);
+    return () => window.removeEventListener(ISSUE_CREATED_EVENT, handler);
   }, [loadAll]);
 
   useEffect(() => {

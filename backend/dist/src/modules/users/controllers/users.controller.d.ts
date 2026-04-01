@@ -20,9 +20,8 @@ export declare class UsersController {
                 managerEmpNo: string | null;
             } | null;
             id: string;
-            email: string;
-            employeeId: string | null;
             name: string;
+            email: string;
             role: import(".prisma/client").$Enums.Role;
             department: string | null;
             employeeNumber: string | null;
@@ -30,14 +29,14 @@ export declare class UsersController {
             mustChangePassword: boolean;
             createdAt: Date;
             updatedAt: Date;
+            employeeId: string | null;
         };
         tempPassword: string;
     }>>;
     update(id: string, dto: UpdateUserDto): Promise<import("@common/types/global/api-response.interface").ApiResponse<{
         id: string;
-        email: string;
-        employeeId: string | null;
         name: string;
+        email: string;
         role: import(".prisma/client").$Enums.Role;
         department: string | null;
         employeeNumber: string | null;
@@ -45,6 +44,7 @@ export declare class UsersController {
         mustChangePassword: boolean;
         createdAt: Date;
         updatedAt: Date;
+        employeeId: string | null;
     }>>;
     resetPassword(id: string): Promise<import("@common/types/global/api-response.interface").ApiResponse<{
         tempPassword: string;

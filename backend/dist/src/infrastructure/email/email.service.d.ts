@@ -15,5 +15,26 @@ export declare class EmailService {
         name: string;
         resetLink: string;
     }): Promise<void>;
+    sendIssueCreated(opts: {
+        toEmails: string[];
+        defectNo: string;
+        title: string;
+        projectName: string;
+        priority: string;
+        status: string;
+        issueId: number;
+        reportedByName: string;
+    }): Promise<void>;
+    sendIssueStatusChanged(opts: {
+        toEmails: string[];
+        defectNo: string;
+        title: string;
+        projectName: string;
+        previousStatus: string;
+        newStatus: string;
+        issueId: number;
+        changedByName?: string;
+    }): Promise<void>;
+    private escapeHtml;
     private send;
 }

@@ -93,7 +93,7 @@ const DashboardPage: React.FC = () => {
               {user?.role}
             </Box>
           </Box>
-          <Typography sx={{ fontSize: 13, color: '#6B6B8A' }}>Here&apos;s what&apos;s happening across all your projects.</Typography>
+          <Typography sx={{ fontSize: 12, fontStyle: 'italic', color: '#9CA3AF' }}>Here&apos;s what&apos;s happening across all your projects.</Typography>
         </Box>
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <Select value={selectedProject} onChange={(e) => handleProjectChange(e.target.value as string)}>

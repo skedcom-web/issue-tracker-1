@@ -380,7 +380,7 @@ const EmployeeSetupPage: React.FC = () => {
               <UploadFileIcon sx={{ color: '#4F38F6', fontSize: 20 }} />
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#07003C' }}>{uploadFile.name}</Typography>
-                <Typography sx={{ fontSize: 11, color: '#6B6B8A' }}>
+                <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF' }}>
                   {uploadPreview.length} valid row{uploadPreview.length !== 1 ? 's' : ''} found
                   {parseErrors.length > 0 && ` · ${parseErrors.length} error${parseErrors.length !== 1 ? 's' : ''}`}
                 </Typography>
@@ -428,7 +428,7 @@ const EmployeeSetupPage: React.FC = () => {
                 <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#07003C' }}>
                   Preview — {uploadPreview.length} employee{uploadPreview.length !== 1 ? 's' : ''} to upload
                 </Typography>
-                <Typography sx={{ fontSize: 11, color: '#6B6B8A' }}>
+                <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF' }}>
                   Existing records will be updated, new ones will be created
                 </Typography>
               </Box>
@@ -461,7 +461,7 @@ const EmployeeSetupPage: React.FC = () => {
                 </Table>
               </TableContainer>
               {uploadPreview.length > 50 && (
-                <Typography sx={{ fontSize: 11, color: '#6B6B8A', mt: 0.75, textAlign: 'center' }}>
+                <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF', mt: 0.75, textAlign: 'center' }}>
                   Showing first 50 of {uploadPreview.length} rows. All rows will be uploaded.
                 </Typography>
               )}

@@ -11,6 +11,7 @@ html, body, #root {
   height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: $web-bg;
   color: $text-1;
   font-size: 14px;
@@ -18,7 +19,6 @@ html, body, #root {
 }
 
 a { color: inherit; text-decoration: none; }
-
 button { font-family: inherit; cursor: pointer; }
 
 // ── Scrollbar ────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ button { font-family: inherit; cursor: pointer; }
 ::-webkit-scrollbar-thumb { background: $gray-200; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: color.adjust($gray-200, $lightness: -10%); }
 
-// ── OMS Status Badge colours ──────────────────────────────────────
+// ── Status badge colours ──────────────────────────────────────────
 .badge-open        { background: #fef9c3; color: #854d0e; }
 .badge-inprogress  { background: $shade-50; color: $primary; }
 .badge-inreview    { background: #faf5ff; color: #7c3aed; }
@@ -45,5 +45,80 @@ button { font-family: inherit; cursor: pointer; }
 .badge-feature     { background: #f0fdf4; color: $success; }
 .badge-improvement { background: #faf5ff; color: #7c3aed; }
 
-// overdue row highlight
+// ── Overdue row highlight ─────────────────────────────────────────
 .row-overdue td { background: #fef9c3 !important; }
+
+// ── Form label — sits ABOVE field, matches reference design ───────
+// Bold, dark, 13px. Clearly a label not descriptive text.
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  line-height: 1.4;
+
+  .req { color: #DC2626; margin-left: 2px; }
+  .hint {
+    font-size: 11px;
+    font-weight: 400;
+    font-style: italic;
+    color: #9CA3AF;
+    margin-left: 6px;
+  }
+}
+
+// ── Field hint — below a field, italic muted. Never mistaken for label ──
+.field-hint {
+  font-size: 11px;
+  font-style: italic;
+  color: #9CA3AF;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+// ── Read-only field — dashed border + tinted bg = non-editable ────
+.readonly-value {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: #F9FAFB;
+  border: 1.5px dashed #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: default;
+  user-select: none;
+}
+
+// ── MUI InputLabel override — force labels to sit ABOVE fields ────
+// This ensures the theme setting applies even when shrink is not passed
+.MuiInputLabel-root {
+  position: static !important;
+  transform: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-bottom: 6px !important;
+  letter-spacing: 0 !important;
+
+  &.Mui-focused { color: #374151 !important; }
+
+  .MuiFormLabel-asterisk { color: #DC2626 !important; }
+}
+
+// Remove the notch gap in OutlinedInput since labels are above
+.MuiOutlinedInput-notchedOutline legend { display: none !important; }
+.MuiOutlinedInput-notchedOutline { top: 0 !important; }
+
+// ── Section heading inside a form ────────────────────────────────
+// Bold uppercase small — group header, not a field label
+.section-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+}

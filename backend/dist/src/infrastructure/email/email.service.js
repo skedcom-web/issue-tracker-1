@@ -141,6 +141,77 @@ let EmailService = EmailService_1 = class EmailService {
             html: this.wrap(body),
         });
     }
+    async sendIssueCreated(opts) {
+        if (!opts.toEmails.length)
+            return;
+        const appUrl = process.env.APP_URL ?? 'http://localhost:5173';
+        const issueUrl = `${appUrl}/issues/${opts.issueId}`;
+        const safeTitle = this.escapeHtml(opts.title);
+        const body = `
+      <p class="greeting">Hello,</p>
+      <p class="text">
+        A new issue has been created in vThink Issue Tracker. Notifications have been sent to the reporter and assignee. Kindly review and proceed with the necessary actions.
+      </p>
+      <div class="box">
+        <div class="box-row"><span class="box-label">Project</span><span class="box-value">${this.escapeHtml(opts.projectName)}</span></div>
+        <div class="box-row"><span class="box-label">Defect / ID</span><span class="box-value">${this.escapeHtml(opts.defectNo)}</span></div>
+        <div class="box-row"><span class="box-label">Title</span><span class="box-value">${safeTitle}</span></div>
+        <div class="box-row"><span class="box-label">Priority</span><span class="box-value">${this.escapeHtml(opts.priority)}</span></div>
+        <div class="box-row"><span class="box-label">Status</span><span class="box-value">${this.escapeHtml(opts.status)}</span></div>
+        <div class="box-row"><span class="box-label">Reported by</span><span class="box-value">${this.escapeHtml(opts.reportedByName)}</span></div>
+      </div>
+      <div class="btn-wrap">
+        <a href="${issueUrl}" class="btn">Open issue →</a>
+      </div>
+      <p class="text" style="font-size:12px;color:#9CA3AF;word-break:break-all;">
+        ${issueUrl}
+      </p>
+      <p class="text" style="margin-bottom:0;">
+        Regards,<br/><strong>Project/Issue Tracker</strong>
+      </p>`;
+        const subject = `[vThink Tracker] New issue ${opts.defectNo}: ${opts.title.length > 50 ? `${opts.title.slice(0, 47)}…` : opts.title}`;
+        await Promise.all(opts.toEmails.map((to) => this.send({ to, subject, html: this.wrap(body) })));
+    }
+    async sendIssueStatusChanged(opts) {
+        if (!opts.toEmails.length)
+            return;
+        const appUrl = process.env.APP_URL ?? 'http://localhost:5173';
+        const issueUrl = `${appUrl}/issues/${opts.issueId}`;
+        const byLine = opts.changedByName
+            ? `<div class="box-row"><span class="box-label">Updated by</span><span class="box-value">${this.escapeHtml(opts.changedByName)}</span></div>`
+            : '';
+        const body = `
+      <p class="greeting">Hello,</p>
+      <p class="text">
+        The status of an issue you are involved with has been <strong>updated</strong>.
+      </p>
+      <div class="box">
+        <div class="box-row"><span class="box-label">Defect / ID</span><span class="box-value">${this.escapeHtml(opts.defectNo)}</span></div>
+        <div class="box-row"><span class="box-label">Title</span><span class="box-value">${this.escapeHtml(opts.title)}</span></div>
+        <div class="box-row"><span class="box-label">Project</span><span class="box-value">${this.escapeHtml(opts.projectName)}</span></div>
+        <div class="box-row"><span class="box-label">Previous status</span><span class="box-value">${this.escapeHtml(opts.previousStatus)}</span></div>
+        <div class="box-row"><span class="box-label">New status</span><span class="box-value">${this.escapeHtml(opts.newStatus)}</span></div>
+        ${byLine}
+      </div>
+      <div class="btn-wrap">
+        <a href="${issueUrl}" class="btn">View issue →</a>
+      </div>
+      <p class="text" style="font-size:12px;color:#9CA3AF;word-break:break-all;">
+        ${issueUrl}
+      </p>
+      <p class="text" style="margin-bottom:0;">
+        Regards,<br/><strong>Project/Issue Tracker</strong>
+      </p>`;
+        const subject = `[vThink Tracker] ${opts.defectNo}: ${opts.previousStatus} → ${opts.newStatus}`;
+        await Promise.all(opts.toEmails.map((to) => this.send({ to, subject, html: this.wrap(body) })));
+    }
+    escapeHtml(s) {
+        return s
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
     async send(opts) {
         try {
             const info = await this.transporter.sendMail({

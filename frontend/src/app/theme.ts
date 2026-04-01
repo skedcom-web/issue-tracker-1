@@ -1,81 +1,84 @@
 import { createTheme } from '@mui/material/styles';
 
-const OMS_PRIMARY = '#4F38F6';
-const OMS_PRIMARY_DARK = '#3B24E0';
-const OMS_TEXT_1 = '#07003C';
-const OMS_TEXT_2 = '#6B6B8A';
-const OMS_BG = '#EBE8FC';
-const OMS_WHITE = '#FFFFFF';
-const OMS_GRAY_100 = '#F3F4F6';
-const OMS_GRAY_200 = '#E5E7EB';
+// ── Brand colours (unchanged) ──────────────────────────────────────
+const PRIMARY      = '#4F38F6';
+const PRIMARY_DARK = '#3B24E0';
+const TEXT_DARK    = '#07003C';   // headings, field values
+const TEXT_MID     = '#374151';   // field values, body text
+const TEXT_MUTED   = '#6B7280';   // secondary data (email, dates in lists)
+const TEXT_HINT    = '#9CA3AF';   // hint text — clearly softest
+const BG_PAGE      = '#EBE8FC';   // page background (your brand lavender)
+const WHITE        = '#FFFFFF';
+const GRAY_50      = '#F9FAFB';
+const GRAY_100     = '#F3F4F6';
+const GRAY_200     = '#E5E7EB';
+const GRAY_300     = '#D1D5DB';
 
 export const theme = createTheme({
   palette: {
-    primary: {
-      main: OMS_PRIMARY,
-      dark: OMS_PRIMARY_DARK,
-      contrastText: '#fff',
-    },
-    background: {
-      default: OMS_BG,
-      paper: OMS_WHITE,
-    },
-    text: {
-      primary: OMS_TEXT_1,
-      secondary: OMS_TEXT_2,
-    },
-    divider: OMS_GRAY_200,
-    error: { main: '#DC2626' },
-    warning: { main: '#F59E0B' },
-    success: { main: '#16A34A' },
+    primary:    { main: PRIMARY, dark: PRIMARY_DARK, contrastText: '#fff' },
+    background: { default: BG_PAGE, paper: WHITE },
+    text:       { primary: TEXT_DARK, secondary: TEXT_MUTED },
+    divider:    GRAY_200,
+    error:      { main: '#DC2626' },
+    warning:    { main: '#F59E0B' },
+    success:    { main: '#16A34A' },
   },
+
   typography: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     fontSize: 14,
-    h1: { fontSize: '1.75rem', fontWeight: 700, color: OMS_TEXT_1 },
-    h2: { fontSize: '1.4rem', fontWeight: 700, color: OMS_TEXT_1 },
-    h3: { fontSize: '1.2rem', fontWeight: 600, color: OMS_TEXT_1 },
-    body1: { fontSize: '0.875rem', lineHeight: 1.6 },
-    body2: { fontSize: '0.8rem', color: OMS_TEXT_2 },
-    caption: { fontSize: '0.75rem', color: OMS_TEXT_2 },
+    h1: { fontSize: '1.5rem',   fontWeight: 800, color: TEXT_DARK, letterSpacing: '-0.02em' },
+    h2: { fontSize: '1.25rem',  fontWeight: 700, color: TEXT_DARK },
+    h3: { fontSize: '1.05rem',  fontWeight: 700, color: TEXT_DARK },
+    body1: { fontSize: '0.875rem', lineHeight: 1.6, color: TEXT_DARK },
+    body2: { fontSize: '0.8rem',   color: TEXT_MUTED, lineHeight: 1.5 },
+    caption: { fontSize: '0.6875rem', color: TEXT_HINT },
   },
-  shape: { borderRadius: 10 },
+
+  shape: { borderRadius: 8 },
+
   components: {
+    // ── Buttons ────────────────────────────────────────────────────
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
           fontWeight: 600,
           fontSize: '0.8125rem',
-          borderRadius: 10,
-          padding: '7px 16px',
+          borderRadius: 8,
+          padding: '7px 18px',
         },
         containedPrimary: {
-          background: OMS_PRIMARY,
-          '&:hover': { background: OMS_PRIMARY_DARK },
+          background: PRIMARY,
+          '&:hover': { background: PRIMARY_DARK },
         },
       },
     },
+
+    // ── Paper ─────────────────────────────────────────────────────
     MuiPaper: {
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          boxShadow: '0 1px 3px 0 rgba(79,56,246,.08), 0 1px 2px -1px rgba(79,56,246,.04)',
+          boxShadow: '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)',
         },
       },
     },
+
+    // ── Tables ────────────────────────────────────────────────────
     MuiTableHead: {
       styleOverrides: {
         root: {
           '& th': {
             fontSize: '0.6875rem',
             fontWeight: 700,
-            color: OMS_TEXT_2,
+            color: TEXT_MUTED,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             padding: '10px 16px',
-            borderBottom: `1px solid ${OMS_GRAY_200}`,
-            background: OMS_WHITE,
+            borderBottom: `1px solid ${GRAY_200}`,
+            background: WHITE,
           },
         },
       },
@@ -83,7 +86,7 @@ export const theme = createTheme({
     MuiTableRow: {
       styleOverrides: {
         root: {
-          '&:hover td': { background: OMS_GRAY_100 },
+          '&:hover td': { background: GRAY_50 },
           cursor: 'pointer',
         },
       },
@@ -91,12 +94,15 @@ export const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          padding: '12px 16px',
+          padding: '11px 16px',
           fontSize: '0.8125rem',
-          borderBottom: `1px solid ${OMS_GRAY_100}`,
+          color: TEXT_DARK,
+          borderBottom: `1px solid ${GRAY_100}`,
         },
       },
     },
+
+    // ── Chips ─────────────────────────────────────────────────────
     MuiChip: {
       styleOverrides: {
         root: {
@@ -107,12 +113,20 @@ export const theme = createTheme({
         },
       },
     },
+
+    // ── Input BASE ── the value the user types ─────────────────────
+    // Bold enough to be clearly "primary" content vs label
     MuiInputBase: {
       styleOverrides: {
-        root: { fontSize: '0.875rem' },
+        root: {
+          fontSize: '0.875rem',
+          fontWeight: 400,
+          color: TEXT_DARK,
+        },
         input: {
+          padding: '9px 12px',
           '&::placeholder': {
-            color: '#B0B7C3',
+            color: TEXT_HINT,
             opacity: 1,
             fontStyle: 'italic',
             fontSize: '0.8125rem',
@@ -120,43 +134,110 @@ export const theme = createTheme({
         },
       },
     },
+
+    // ── Floating MUI label ──────────────────────────────────────
+    // IMPORTANT: In this design labels sit ABOVE fields (shrink always true).
+    // We keep InputLabel but style it to look like the reference — bold, dark,
+    // positioned above, NOT floating inside the box.
     MuiInputLabel: {
+      defaultProps: { shrink: true },
       styleOverrides: {
         root: {
-          fontSize: '0.8125rem',
-          fontWeight: 500,
-          color: OMS_TEXT_2,
-          '&.Mui-focused': { color: OMS_PRIMARY, fontWeight: 600 },
+          // Position: static above the field (not floating inside)
+          position: 'static',
+          transform: 'none',
+          fontSize: '0.8125rem',   // 13px
+          fontWeight: 600,
+          color: TEXT_MID,         // dark grey — clearly a label
+          letterSpacing: 0,
+          marginBottom: '6px',
+          lineHeight: 1.4,
+          '&.Mui-focused': { color: TEXT_MID },
+          // Required asterisk — red like reference
+          '& .MuiFormLabel-asterisk': { color: '#DC2626' },
         },
       },
     },
-    MuiFormHelperText: {
-      styleOverrides: {
-        root: { fontSize: '0.6875rem', marginTop: 3 },
-      },
-    },
+
+    // ── Outlined input wrapper ─────────────────────────────────────
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
-          background: OMS_WHITE,
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: OMS_PRIMARY,
+          borderRadius: 8,
+          background: WHITE,
+          // Adjust notch — since label is above, no notch cut needed
+          '& .MuiOutlinedInput-notchedOutline legend': { display: 'none' },
+          '& .MuiOutlinedInput-notchedOutline': { top: 0 },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: GRAY_300 },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: PRIMARY,
+            borderWidth: '1.5px',
           },
         },
-        notchedOutline: { borderColor: OMS_GRAY_200 },
+        notchedOutline: { borderColor: GRAY_200 },
+        input: { padding: '9px 12px' },
       },
     },
+
+    // ── Select ────────────────────────────────────────────────────
     MuiSelect: {
       styleOverrides: {
-        root: { fontSize: '0.8125rem' },
+        root: {
+          fontSize: '0.875rem',
+          color: TEXT_DARK,
+        },
+        select: {
+          padding: '9px 12px',
+          // Empty (placeholder) state — italic hint grey
+          '&[data-value=""]': {
+            color: TEXT_HINT,
+            fontStyle: 'italic',
+          },
+        },
       },
     },
+
+    // ── FormControl — give it top margin so stacked fields breathe ─
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputLabel-root + .MuiOutlinedInput-root': {
+            marginTop: 0,
+          },
+        },
+      },
+    },
+
+    // ── Helper text ─ clearly softest text in the form ─────────────
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.6875rem',
+          fontStyle: 'italic',
+          color: TEXT_HINT,
+          marginTop: '4px',
+          marginLeft: 0,
+        },
+      },
+    },
+
+    // ── Dialog ────────────────────────────────────────────────────
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          fontSize: '1rem',
+          fontWeight: 700,
+          color: TEXT_DARK,
+        },
+      },
+    },
+
+    // ── Drawer ────────────────────────────────────────────────────
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          background: OMS_WHITE,
-          borderRight: `1px solid ${OMS_GRAY_200}`,
+          background: WHITE,
+          borderRight: `1px solid ${GRAY_200}`,
           boxShadow: 'none',
         },
       },

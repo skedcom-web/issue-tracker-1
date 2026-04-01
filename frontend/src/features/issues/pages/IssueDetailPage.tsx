@@ -158,6 +158,31 @@ const IssueDetailPage: React.FC = () => {
     } finally { setPosting(false); }
   };
 
+  // ── Dedicated reopen — avoids React async state timing bug ──────
+  // Calling setStatusChange('Reopened') + handlePostComment() together
+  // fails because statusChange is still '' when the function runs.
+  // This function passes 'Reopened' directly to the API.
+  const handleReopen = async () => {
+    if (!reopenReason.trim()) { setPostError('Reopen reason is required'); return; }
+    if (!id) return;
+    setPosting(true); setPostError('');
+    try {
+      await issuesApi.addComment(Number(id), {
+        body:         comment.trim() || '',
+        statusChange: 'Reopened' as never,
+        reopenReason: reopenReason.trim(),
+      });
+      setComment(''); setStatusChange(''); setReopenReason('');
+      setReopenOpen(false);
+      await load();
+    } catch (err: unknown) {
+      setPostError(
+        (err as { response?: { data?: { error?: { message?: string } } } })
+          ?.response?.data?.error?.message ?? 'Failed to reopen issue',
+      );
+    } finally { setPosting(false); }
+  };
+
   // ── Save field edits ───────────────────────────────────────────
   const handleEditSave = async () => {
     if (!id) return;
@@ -200,8 +225,11 @@ const IssueDetailPage: React.FC = () => {
 
   const sc = STATUS_COLORS[issue.status] ?? STATUS_COLORS.Open;
   const allowedNext = ALLOWED[issue.status] ?? [];
-  const isClosed = issue.status === 'Closed';
+  // Only truly 'Closed' status locks the issue — 'Reopened' must show active workflow
+  const isClosed   = issue.status === 'Closed';
+  const isReopened = issue.status === 'Reopened';
   const isResolved = issue.status === 'Resolved';
+  const canEdit    = !isClosed; // edit allowed on Reopened
 
   return (
     <Box>
@@ -209,7 +237,7 @@ const IssueDetailPage: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ color: '#6B6B8A', '&:hover': { color: '#4F38F6' } }}>Back</Button>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {!editing && !isClosed && (
+          {!editing && canEdit && (
             <Button variant="outlined" startIcon={<EditIcon />} onClick={startEdit} sx={{ fontSize: 13 }}>Edit Issue</Button>
           )}
           {editing && (
@@ -362,6 +390,21 @@ const IssueDetailPage: React.FC = () => {
             })}
 
             <Divider sx={{ mb: 2.5 }} />
+
+            {/* ── Reopened banner — clarifies workflow is active ─── */}
+            {isReopened && (
+              <Box sx={{ bgcolor: '#fff7ed', border: '1px solid #FED7AA', borderRadius: 2, p: 2, mb: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ fontSize: 22, flexShrink: 0 }}>🔄</Box>
+                <Box>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>
+                    Issue Reopened — workflow is active
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: '#B45309' }}>
+                    Use the status selector below to move this issue to <strong>In Progress</strong> or <strong>Open</strong> to restart the workflow.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
 
             {/* ── Comment / Action form ──────────────────────── */}
             {isClosed ? (
@@ -601,7 +644,7 @@ const IssueDetailPage: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => { setReopenOpen(false); setReopenReason(''); setPostError(''); }} variant="outlined" color="inherit">Cancel</Button>
-          <Button onClick={() => { setStatusChange('Reopened'); handlePostComment(); }} variant="contained" color="error" disabled={posting || !reopenReason.trim()}>
+          <Button onClick={handleReopen} variant="contained" color="error" disabled={posting || !reopenReason.trim()}>
             {posting ? <CircularProgress size={18} color="inherit" /> : 'Reopen Issue'}
           </Button>
         </DialogActions>

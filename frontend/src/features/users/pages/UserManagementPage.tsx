@@ -201,10 +201,10 @@ const UserManagementPage: React.FC = () => {
               A new temporary password has been generated for <strong>{u.name}</strong> and sent to their email.
             </Typography>
             <Box sx={{ bgcolor: '#F3F4F6', borderRadius: 2, px: 2, py: 1.5, display: 'inline-block' }}>
-              <Typography sx={{ fontSize: 11, color: '#6B6B8A', mb: 0.25 }}>Temporary Password</Typography>
+              <Typography sx={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.25 }}>Temporary Password</Typography>
               <Typography sx={{ fontSize: 16, fontWeight: 700, fontFamily: 'monospace', color: '#07003C', letterSpacing: 1 }}>{pw}</Typography>
             </Box>
-            <Typography sx={{ fontSize: 11, color: '#6B6B8A', mt: 1.5 }}>
+            <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF', mt: 1.5 }}>
               The user must change this password on their next login.
             </Typography>
           </Box>,
@@ -283,7 +283,7 @@ const UserManagementPage: React.FC = () => {
                         <TableRow key={u.id} sx={{ opacity: u.active ? 1 : 0.55, '&:hover td': { bgcolor: '#F9FAFB' } }}>
                           <TableCell>
                             <Typography sx={{ fontWeight: 600, fontSize: 13, color: '#07003C' }}>{u.name}</Typography>
-                            <Typography sx={{ fontSize: 11, color: '#6B6B8A' }}>{u.email}</Typography>
+                            <Typography sx={{ fontSize: 12, color: '#6B7280' }}>{u.email}</Typography>
                           </TableCell>
                           <TableCell>
                             <Chip label={u.role} size="small" sx={{ bgcolor: rc.bg, color: rc.color, fontWeight: 600, fontSize: 11, height: 22, borderRadius: '99px' }} />
@@ -325,7 +325,7 @@ const UserManagementPage: React.FC = () => {
                 </Table>
               </TableContainer>
               <Box sx={{ px: 2.5, py: 1.5, borderTop: '1px solid #F3F4F6', display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: 11, color: '#6B6B8A', fontWeight: 600 }}>ROLE ACCESS:</Typography>
+                <Typography sx={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ROLE ACCESS:</Typography>
                 {[
                   { role: 'Admin',     access: 'Full access including Administration' },
                   { role: 'Manager',   access: 'Full access including Administration' },
@@ -341,7 +341,7 @@ const UserManagementPage: React.FC = () => {
                     </Tooltip>
                   );
                 })}
-                <Typography sx={{ fontSize: 11, color: '#6B6B8A', ml: 0.5 }}>— hover a role to see access level</Typography>
+                <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF', ml: 0.5 }}>— hover a role to see access level</Typography>
               </Box>
             </Paper>
           )}
@@ -396,7 +396,7 @@ const UserManagementPage: React.FC = () => {
                     })}
                   </Box>
                   {form.role && (
-                    <Typography sx={{ fontSize: 11, color: '#6B6B8A', mt: 0.75 }}>
+                    <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF', mt: 0.75 }}>
                       {['Admin', 'Manager'].includes(form.role)
                         ? '⚡ This role has access to the Administration section'
                         : '👤 This role has access to Issues and Dashboard only'}
@@ -464,7 +464,7 @@ const UserManagementPage: React.FC = () => {
                     <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: selected ? rc.color : '#D1D5DB', transition: 'background 150ms' }} />
                     <Typography sx={{ fontSize: 13, fontWeight: selected ? 600 : 400, color: selected ? rc.color : '#07003C' }}>{r}</Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 11, color: '#6B6B8A' }}>
+                  <Typography sx={{ fontSize: 11, fontStyle: 'italic', color: '#9CA3AF' }}>
                     {['Admin', 'Manager'].includes(r) ? '⚡ Full admin access' : '👤 Issues & Dashboard'}
                   </Typography>
                 </Box>

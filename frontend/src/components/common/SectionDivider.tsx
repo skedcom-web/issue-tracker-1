@@ -5,56 +5,54 @@ interface Props {
   title: string;
   subtitle?: string;
   icon?: React.ReactNode;
-  /** Accent colour for the left bar. Defaults to primary indigo. */
-  color?: string;
+  color?: string; // kept for API compat but ignored — plain style per design standard
 }
 
 /**
- * A clearly styled section divider for forms.
- * Renders as a coloured left-bar + bold heading so it can NEVER be
- * mistaken for a form field or placeholder.
+ * Section divider that matches company design standard:
+ * - Title: 11px bold dark uppercase — clearly a HEADING, not a field
+ * - Subtitle: 11px italic muted — clearly a HINT, never mistaken for a label
+ * - No coloured accent bars — clean, minimal
  */
-const SectionDivider: React.FC<Props> = ({
-  title, subtitle, icon, color = '#4F38F6',
-}) => (
+const SectionDivider: React.FC<Props> = ({ title, subtitle, icon }) => (
   <Box sx={{
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 1.25,
-    mt: 1,
-    mb: 2,
+    mt: 1.5,
+    mb: 1.5,
     pt: 1.5,
-    borderTop: '1px solid #F3F4F6',
+    borderTop: '1px solid #E5E7EB',
   }}>
-    {/* Accent bar */}
-    <Box sx={{
-      width: 4,
-      minHeight: 20,
-      borderRadius: 99,
-      bgcolor: color,
-      flexShrink: 0,
-      mt: 0.25,
-    }} />
-
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-        {icon && <Box sx={{ color, display: 'flex', alignItems: 'center', fontSize: 15 }}>{icon}</Box>}
-        <Typography sx={{
-          fontSize: 12,
-          fontWeight: 800,
-          color: '#07003C',
-          letterSpacing: '0.04em',
-          lineHeight: 1,
-        }}>
-          {title}
-        </Typography>
-      </Box>
-      {subtitle && (
-        <Typography sx={{ fontSize: 11, color: '#9CA3AF', mt: 0.4, lineHeight: 1.4 }}>
-          {subtitle}
-        </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+      {icon && (
+        <Box sx={{ color: '#6B7280', display: 'flex', alignItems: 'center', fontSize: 14 }}>
+          {icon}
+        </Box>
       )}
+      {/* Section title — bold, dark, uppercase = clearly a category heading */}
+      <Typography sx={{
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        color: '#374151',
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase',
+        lineHeight: 1,
+      }}>
+        {title}
+      </Typography>
     </Box>
+
+    {/* Subtitle — small italic grey = clearly a hint, never clickable */}
+    {subtitle && (
+      <Typography sx={{
+        fontSize: '0.6875rem',
+        fontWeight: 400,
+        fontStyle: 'italic',
+        color: '#9CA3AF',
+        mt: 0.4,
+        lineHeight: 1.4,
+      }}>
+        {subtitle}
+      </Typography>
+    )}
   </Box>
 );
 

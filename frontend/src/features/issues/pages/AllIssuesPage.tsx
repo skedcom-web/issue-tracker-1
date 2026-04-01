@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { ISSUE_CREATED_EVENT } from '@components/layout/MainLayout';
 import {
   Box, Paper, Table, TableHead, TableBody, TableRow, TableCell,
   TextField, Select, MenuItem, FormControl, Button, Typography,
@@ -44,6 +45,19 @@ const AllIssuesPage: React.FC = () => {
   useEffect(() => {
     projectsApi.getAll().then((r) => setProjects(r.data.data));
     load(INIT_FILTERS);
+  }, [load]);
+
+  // ── Auto-refresh when a new issue is created via the modal ──────
+  useEffect(() => {
+    const handler = () => {
+      // Reset to page 1 and reload so the new issue appears at the top
+      const fresh = { ...INIT_FILTERS, page: 1 };
+      setFilters(fresh);
+      setSearchInput('');
+      load(fresh);
+    };
+    window.addEventListener(ISSUE_CREATED_EVENT, handler);
+    return () => window.removeEventListener(ISSUE_CREATED_EVENT, handler);
   }, [load]);
 
   const handleFilter = (key: keyof IssueQuery, val: string) => {
@@ -117,16 +131,16 @@ const AllIssuesPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                {['Defect No', 'Title', 'Project', 'Priority', 'Severity', 'Type', 'Raised By', 'Assignee', 'Status', 'Due'].map((h) => (
+                {['Defect No', 'Title', 'Project', 'Priority', 'Severity', 'Type', 'Raised By', 'Assignee', 'Status', 'Reopen #', 'Due'].map((h) => (
                   <TableCell key={h}>{h}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={10} align="center" sx={{ py: 6 }}><CircularProgress size={28} /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={11} align="center" sx={{ py: 6 }}><CircularProgress size={28} /></TableCell></TableRow>
               ) : issues.length === 0 ? (
-                <TableRow><TableCell colSpan={10} align="center" sx={{ py: 6, color: '#6B6B8A', fontSize: 13 }}>No issues found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={11} align="center" sx={{ py: 6, color: '#6B6B8A', fontSize: 13 }}>No issues found</TableCell></TableRow>
               ) : issues.map((issue) => (
                 <TableRow
                   key={issue.id}
@@ -148,6 +162,17 @@ const AllIssuesPage: React.FC = () => {
                   <TableCell sx={{ color: '#6B6B8A', fontSize: 12 }}>{issue.reporterName}</TableCell>
                   <TableCell sx={{ color: '#6B6B8A', fontSize: 12 }}>{issue.assigneeName}</TableCell>
                   <TableCell><StatusChip type="status" value={issue.status} /></TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>
+                    {issue.reopenCount > 0 ? (
+                      <Chip
+                        label={`×${issue.reopenCount}`}
+                        size="small"
+                        sx={{ bgcolor: '#fff7ed', color: '#F97316', fontWeight: 700, fontSize: 10, height: 20 }}
+                      />
+                    ) : (
+                      <Typography sx={{ fontSize: 12, color: '#D1D5DB' }}>—</Typography>
+                    )}
+                  </TableCell>
                   <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>{fmtDate(issue.dueDate)}</TableCell>
                 </TableRow>
               ))}

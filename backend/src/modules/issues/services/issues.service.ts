@@ -2,9 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/database/prisma/prisma.service';
+import { EmailService } from '@infrastructure/email/email.service';
 import { ProjectsService } from '@modules/projects/services/projects.service';
 import {
   CreateIssueDto,
@@ -29,7 +29,117 @@ export class IssuesService {
   constructor(
     private prisma: PrismaService,
     private projectsService: ProjectsService,
+    private emailService: EmailService,
   ) {}
+
+  /** Distinct recipient emails for reporter (User) and assignee (Employee or linked User). */
+  private async collectIssueNotifyEmails(
+    reporterId: string | null,
+    assigneeId: string | null,
+  ): Promise<string[]> {
+    const byLower = new Map<string, string>();
+
+    const add = (raw: string | null | undefined) => {
+      const t = raw?.trim();
+      if (!t) return;
+      const k = t.toLowerCase();
+      if (!byLower.has(k)) byLower.set(k, t);
+    };
+
+    if (reporterId) {
+      const u = await this.prisma.user.findUnique({
+        where: { id: reporterId },
+        select: { email: true },
+      });
+      add(u?.email);
+    }
+
+    if (assigneeId) {
+      const emp = await this.prisma.employee.findUnique({
+        where: { id: assigneeId },
+        select: { email: true },
+      });
+      add(emp?.email ?? undefined);
+      if (!emp?.email?.trim()) {
+        const linked = await this.prisma.user.findFirst({
+          where: { employeeId: assigneeId },
+          select: { email: true },
+        });
+        add(linked?.email);
+      }
+    }
+
+    return [...byLower.values()];
+  }
+
+  private fireIssueCreatedEmail(issue: {
+    id: number;
+    defectNo: string;
+    title: string;
+    status: string;
+    priority: string;
+    reporterId: string | null;
+    assigneeId: string | null;
+    project: { name: string };
+  }) {
+    void (async () => {
+      const toEmails = await this.collectIssueNotifyEmails(issue.reporterId, issue.assigneeId);
+      if (!toEmails.length) return;
+
+      const reporter = issue.reporterId
+        ? await this.prisma.user.findUnique({
+            where: { id: issue.reporterId },
+            select: { name: true },
+          })
+        : null;
+
+      await this.emailService.sendIssueCreated({
+        toEmails,
+        defectNo: issue.defectNo,
+        title: issue.title,
+        projectName: issue.project.name,
+        priority: String(issue.priority),
+        status: String(issue.status),
+        issueId: issue.id,
+        reportedByName: reporter?.name ?? 'A team member',
+      });
+    })();
+  }
+
+  private fireIssueStatusChangedEmail(
+    issue: {
+      id: number;
+      defectNo: string;
+      title: string;
+      reporterId: string | null;
+      assigneeId: string | null;
+      project: { name: string };
+    },
+    previousStatus: string,
+    newStatus: string,
+    actorUserId: string,
+  ) {
+    void (async () => {
+      const toEmails = await this.collectIssueNotifyEmails(issue.reporterId, issue.assigneeId);
+      if (!toEmails.length) return;
+
+      const actor = await this.prisma.user.findUnique({
+        where: { id: actorUserId },
+        select: { name: true },
+      });
+
+      await this.emailService.sendIssueStatusChanged({
+        toEmails,
+        defectNo: issue.defectNo,
+        title: issue.title,
+        projectName: issue.project.name,
+        previousStatus,
+        newStatus,
+        issueId: issue.id,
+        changedByName: actor?.name,
+      });
+    })();
+  }
 
   // ── Enrich a raw Prisma issue with display names & computed fields ─
   private async enrichIssue(issue: Record<string, unknown>) {
@@ -217,6 +327,17 @@ export class IssuesService {
         },
       });
 
+      this.fireIssueCreatedEmail({
+        id: issue.id,
+        defectNo: issue.defectNo,
+        title: issue.title,
+        status: issue.status,
+        priority: issue.priority,
+        reporterId: issue.reporterId,
+        assigneeId: issue.assigneeId,
+        project: issue.project,
+      });
+
       return this.enrichIssue(issue as unknown as Record<string, unknown>);
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message ?? '';
@@ -231,6 +352,8 @@ export class IssuesService {
   async update(id: number, dto: UpdateIssueDto, userId: string) {
     const issue = await this.prisma.issue.findUnique({ where: { id } });
     if (!issue) throw new NotFoundException(`Issue #${id} not found`);
+
+    const previousStatus = issue.status;
 
     // Status transitions via update are allowed but must be valid
     if (dto.status && dto.status !== issue.status) {
@@ -289,12 +412,31 @@ export class IssuesService {
       },
     });
 
+    if (dto.status !== undefined && dto.status !== previousStatus) {
+      this.fireIssueStatusChangedEmail(
+        {
+          id: updated.id,
+          defectNo: updated.defectNo,
+          title: updated.title,
+          reporterId: updated.reporterId,
+          assigneeId: updated.assigneeId,
+          project: updated.project,
+        },
+        previousStatus,
+        dto.status,
+        userId,
+      );
+    }
+
     return this.enrichIssue(updated as unknown as Record<string, unknown>);
   }
 
   // ── Add comment with optional status transition ────────────────────
   async addComment(issueId: number, dto: CreateCommentDto, userId: string) {
-    const issue = await this.prisma.issue.findUnique({ where: { id: issueId } });
+    const issue = await this.prisma.issue.findUnique({
+      where: { id: issueId },
+      include: { project: true },
+    });
     if (!issue) throw new NotFoundException(`Issue #${issueId} not found`);
 
     // ── Validate status transition ───────────────────────────────────
@@ -361,6 +503,20 @@ export class IssuesService {
           projectId: issue.projectId,
         },
       });
+
+      this.fireIssueStatusChangedEmail(
+        {
+          id: issue.id,
+          defectNo: issue.defectNo,
+          title: issue.title,
+          reporterId: issue.reporterId,
+          assigneeId: issue.assigneeId,
+          project: issue.project,
+        },
+        issue.status,
+        dto.statusChange,
+        userId,
+      );
     }
 
     // Create the actual user comment (always, unless it is empty for a pure status change)

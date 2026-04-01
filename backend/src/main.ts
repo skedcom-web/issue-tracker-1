@@ -7,6 +7,10 @@ import { TraceMiddleware } from '@common/middleware/trace.middleware';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+  // ── Increase JSON body size limit to 10 MB (needed for base64 screenshot uploads) ──
+  app.use(require('express').json({ limit: '10mb' }));
+  app.use(require('express').urlencoded({ limit: '10mb', extended: true }));
+
   // ── CORS ────────────────────────────────────────────────────────
   const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
     .split(',')
@@ -39,7 +43,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`🚀 vThink Tracker API running on http://localhost:${port}/api/v1`);
+  console.log(`🚀 vThink Tracker API running on http://192.168.2.95:${port}/api/v1`);
 }
 
 bootstrap();

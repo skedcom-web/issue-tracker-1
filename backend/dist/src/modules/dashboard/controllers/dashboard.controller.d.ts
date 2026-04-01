@@ -21,12 +21,12 @@ export declare class DashboardController {
         byType: Record<string, number>;
         activity: {
             id: number;
-            createdAt: Date;
-            userId: string | null;
-            projectId: number | null;
             type: string;
+            createdAt: Date;
+            projectId: number | null;
             issueId: number | null;
             message: string;
+            userId: string | null;
         }[];
     }>>;
 }

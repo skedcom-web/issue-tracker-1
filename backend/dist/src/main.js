@@ -7,6 +7,8 @@ const global_exception_filter_1 = require("./common/filters/global-exception.fil
 const trace_middleware_1 = require("./common/middleware/trace.middleware");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, { bufferLogs: true });
+    app.use(require('express').json({ limit: '10mb' }));
+    app.use(require('express').urlencoded({ limit: '10mb', extended: true }));
     const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
         .split(',')
         .map((o) => o.trim())
@@ -28,7 +30,7 @@ async function bootstrap() {
     app.use(new trace_middleware_1.TraceMiddleware().use.bind(new trace_middleware_1.TraceMiddleware()));
     const port = process.env.PORT ?? 3001;
     await app.listen(port);
-    console.log(`🚀 vThink Tracker API running on http://localhost:${port}/api/v1`);
+    console.log(`🚀 vThink Tracker API running on http://192.168.2.95:${port}/api/v1`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
