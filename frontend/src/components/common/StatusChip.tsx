@@ -32,6 +32,13 @@ const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
+  Bug: 'Bug',
+  Task: 'Task',
+  FeatureRequest: 'Feature Request',
+  Improvement: 'Improvement',
+};
+
+const TYPE_LABELS_EMOJI: Record<string, string> = {
   Bug: '🐛 Bug',
   Task: '✅ Task',
   FeatureRequest: '⭐ Feature Request',
@@ -50,18 +57,37 @@ const STATUS_LABELS: Record<string, string> = {
 interface StatusChipProps {
   type: 'status' | 'priority' | 'severity' | 'type';
   value: string;
+  /** Dense Jira-style pill for data tables (no emoji on type). */
+  variant?: 'default' | 'list';
 }
 
-const StatusChip: React.FC<StatusChipProps> = ({ type, value }) => {
+const StatusChip: React.FC<StatusChipProps> = ({ type, value, variant = 'default' }) => {
   const map = type === 'status' ? STATUS_COLORS
     : type === 'priority' ? PRIORITY_COLORS
     : type === 'severity' ? SEVERITY_COLORS
     : TYPE_COLORS;
 
   const colors = map[value] ?? { bg: '#F3F4F6', color: '#6B6B8A' };
-  const label = type === 'type' ? TYPE_LABELS[value] ?? value
-    : type === 'status' ? STATUS_LABELS[value] ?? value
-    : value;
+  const label =
+    type === 'type'
+      ? (variant === 'list' ? TYPE_LABELS[value] ?? value : TYPE_LABELS_EMOJI[value] ?? TYPE_LABELS[value] ?? value)
+      : type === 'status'
+        ? STATUS_LABELS[value] ?? value
+        : value;
+
+  const listSx =
+    variant === 'list'
+      ? {
+          height: 20,
+          fontSize: 11,
+          fontWeight: 500,
+          borderRadius: '4px',
+          border: '1px solid #DFE1E6',
+          bgcolor: colors.bg,
+          color: colors.color,
+          '& .MuiChip-label': { px: 0.75 },
+        }
+      : {};
 
   return (
     <Chip
@@ -75,6 +101,7 @@ const StatusChip: React.FC<StatusChipProps> = ({ type, value }) => {
         height: 22,
         borderRadius: '99px',
         '& .MuiChip-label': { px: 1 },
+        ...listSx,
       }}
     />
   );

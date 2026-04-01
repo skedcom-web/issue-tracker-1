@@ -16,6 +16,7 @@ const EmployeeSetupPage   = lazy(() => import('@features/employees/pages/Employe
 const UserManagementPage  = lazy(() => import('@features/users/pages/UserManagementPage'));
 const ChangePasswordPage  = lazy(() => import('@features/auth/ChangePasswordPage'));
 const ProjectTrackingPage = lazy(() => import('@features/projects/pages/ProjectTrackingPage'));
+const ReportsPage         = lazy(() => import('@features/reports/ReportsPage'));
 
 const Loader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -66,6 +67,7 @@ const AppRoutes: React.FC = () => (
         <Route path="project-setup"   element={<AdminRoute><ErrorBoundary><ProjectSetupPage /></ErrorBoundary></AdminRoute>} />
         <Route path="employee-setup"  element={<AdminRoute><ErrorBoundary><EmployeeSetupPage /></ErrorBoundary></AdminRoute>} />
         <Route path="user-management" element={<AdminRoute><ErrorBoundary><UserManagementPage /></ErrorBoundary></AdminRoute>} />
+        <Route path="reports"         element={<AdminRoute><ErrorBoundary><ReportsPage /></ErrorBoundary></AdminRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

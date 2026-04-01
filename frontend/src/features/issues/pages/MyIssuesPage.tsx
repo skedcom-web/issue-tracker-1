@@ -14,6 +14,20 @@ import type { Issue, Project, IssueQuery } from '@app-types/index';
 import { useAuth } from '@store/useAuth';
 import PageHeader from '@components/common/PageHeader';
 import StatusChip from '@components/common/StatusChip';
+import {
+  filterBarPaperSx,
+  tableSurfacePaperSx,
+  listTableHeadSx,
+  listTableBodyRowSx,
+  listTableOverdueRowSx,
+  issueListColors,
+} from '@features/issues/components/issueListTokens';
+import {
+  IssueTypeIcon,
+  PersonCell,
+  IssueKeyCell,
+  IssueSummaryCell,
+} from '@features/issues/components/IssueListCells';
 
 const STATUSES = ['Open', 'InProgress', 'InReview', 'Resolved', 'Closed', 'Reopened'];
 const PRIORITIES = ['Critical', 'High', 'Medium', 'Low'];
@@ -22,12 +36,17 @@ const STATUS_LABELS: Record<string, string> = { Open: 'Open', InProgress: 'In Pr
 const TYPE_LABELS: Record<string, string> = { Bug: 'Bug', Task: 'Task', FeatureRequest: 'Feature Request', Improvement: 'Improvement' };
 
 const ROLE_COLORS = {
-  Reporter: { bg: '#fffbeb', color: '#F59E0B' },
-  Assignee: { bg: '#f0fdf4', color: '#16A34A' },
-  'Assignee & Reporter': { bg: '#EBE8FC', color: '#4F38F6' },
+  Reporter: { bg: '#E9F2FF', color: '#0052CC', border: '#B3D4FF' },
+  Assignee: { bg: '#E3FCEF', color: '#006644', border: '#ABF5D1' },
+  'Assignee & Reporter': { bg: '#EAE6FF', color: '#403294', border: '#C0B6F2' },
 };
 
 const INIT_FILTERS: IssueQuery = { page: 1, limit: 500, search: '', status: 'All', priority: 'All', type: 'All', projectId: 'All' };
+
+const filterControlSx = {
+  '& .MuiOutlinedInput-notchedOutline': { borderColor: issueListColors.border },
+  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C1C7D0' },
+};
 
 const MyIssuesPage: React.FC = () => {
   const { user } = useAuth();
@@ -74,7 +93,6 @@ const MyIssuesPage: React.FC = () => {
     loadAll();
   }, [loadAll]);
 
-  // ── Auto-refresh when a new issue is created via the modal ──────
   useEffect(() => {
     const handler = () => loadAll();
     window.addEventListener(ISSUE_CREATED_EVENT, handler);
@@ -96,97 +114,158 @@ const MyIssuesPage: React.FC = () => {
   const reset = () => { setSearch(''); setStatus('All'); setPriority('All'); setType('All'); setProjectId('All'); setRoleFilter('All'); };
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
+  const headers = ['Type', 'Key', 'Summary', 'Project', 'My role', 'Reporter', 'Assignee', 'Priority', 'Status', 'Due'];
+
   return (
     <Box>
-      <PageHeader breadcrumbs={['Tracking', 'Issue Tracking', 'My Issues']} title="My Issues" />
+      <PageHeader breadcrumbs={['Tracking', 'Issue Tracking', 'My Issues']} title="My issues" />
 
-      <Paper sx={{ p: 2, borderRadius: 3, mb: 2 }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
-          <TextField size="small" placeholder="Search my issues…" value={search} onChange={(e) => setSearch(e.target.value)}
-            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#6B6B8A' }} /></InputAdornment> }} sx={{ minWidth: 220 }} />
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <Select value={projectId} onChange={(e) => setProjectId(e.target.value as string)}>
-              <MenuItem value="All">All Projects</MenuItem>
+      <Paper elevation={0} sx={filterBarPaperSx}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Search my issues"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 18, color: issueListColors.textSecondary }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 240, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}
+          />
+          <FormControl size="small" sx={{ minWidth: 148, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}>
+            <Select value={projectId} onChange={(e) => setProjectId(e.target.value as string)} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem value="All">All projects</MenuItem>
               {projects.map((p) => <MenuItem key={p.id} value={String(p.id)}>{p.name}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <Select value={status} onChange={(e) => setStatus(e.target.value as string)}>
-              <MenuItem value="All">All Status</MenuItem>
+          <FormControl size="small" sx={{ minWidth: 132, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}>
+            <Select value={status} onChange={(e) => setStatus(e.target.value as string)} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem value="All">All status</MenuItem>
               {STATUSES.map((s) => <MenuItem key={s} value={s}>{STATUS_LABELS[s]}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <Select value={priority} onChange={(e) => setPriority(e.target.value as string)}>
-              <MenuItem value="All">All Priority</MenuItem>
+          <FormControl size="small" sx={{ minWidth: 124, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}>
+            <Select value={priority} onChange={(e) => setPriority(e.target.value as string)} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem value="All">All priority</MenuItem>
               {PRIORITIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 130 }}>
-            <Select value={type} onChange={(e) => setType(e.target.value as string)}>
-              <MenuItem value="All">All Types</MenuItem>
+          <FormControl size="small" sx={{ minWidth: 136, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}>
+            <Select value={type} onChange={(e) => setType(e.target.value as string)} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem value="All">All types</MenuItem>
               {TYPES.map((s) => <MenuItem key={s} value={s}>{TYPE_LABELS[s]}</MenuItem>)}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as string)}>
-              <MenuItem value="All">All Roles</MenuItem>
+          <FormControl size="small" sx={{ minWidth: 140, ...filterControlSx, bgcolor: '#fff', borderRadius: 1 }}>
+            <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as string)} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem value="All">All roles</MenuItem>
               <MenuItem value="Reporter">Reporter</MenuItem>
               <MenuItem value="Assignee">Assignee</MenuItem>
             </Select>
           </FormControl>
-          <Button variant="outlined" size="small" startIcon={<RefreshIcon />} onClick={loadAll}>Refresh</Button>
-          <Button variant="outlined" size="small" startIcon={<FilterAltOffIcon />} onClick={reset} color="inherit">Reset Filters</Button>
+          <Button variant="outlined" size="small" startIcon={<RefreshIcon />} onClick={loadAll} sx={{ borderColor: issueListColors.border, color: issueListColors.text, textTransform: 'none' }}>Refresh</Button>
+          <Button variant="outlined" size="small" startIcon={<FilterAltOffIcon />} onClick={reset} sx={{ borderColor: issueListColors.border, color: issueListColors.textSecondary, textTransform: 'none' }}>Clear filters</Button>
         </Box>
       </Paper>
 
-      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+      <Paper elevation={0} sx={tableSurfacePaperSx}>
         <TableContainer>
-          <Table>
-            <TableHead>
+          <Table size="medium" sx={{ borderCollapse: 'collapse' }}>
+            <TableHead sx={listTableHeadSx}>
               <TableRow>
-                {['Defect No', 'Title', 'Project', 'My Role', 'Raised By', 'Assignee', 'Priority', 'Status', 'Due Date'].map((h) => (
+                {headers.map((h) => (
                   <TableCell key={h}>{h}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={9} align="center" sx={{ py: 6 }}><CircularProgress size={28} /></TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={10} align="center" sx={{ py: 6, border: 'none' }}>
+                    <CircularProgress size={28} sx={{ color: issueListColors.link }} />
+                  </TableCell>
+                </TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={9} align="center" sx={{ py: 8 }}>
-                  <Box sx={{ color: '#6B6B8A', textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 0.5 }}>All clear!</Typography>
-                    <Typography sx={{ fontSize: 13 }}>No issues raised by or assigned to you</Typography>
-                  </Box>
-                </TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={10} align="center" sx={{ py: 8, borderBottom: `1px solid ${issueListColors.border}` }}>
+                    <Box sx={{ color: issueListColors.textSecondary, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1rem', fontWeight: 600, mb: 0.5, color: issueListColors.text }}>All clear</Typography>
+                      <Typography sx={{ fontSize: '0.875rem' }}>No issues raised by or assigned to you</Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
               ) : filtered.map((issue) => {
                 const role = getMyRole(issue);
                 const roleColor = ROLE_COLORS[role as keyof typeof ROLE_COLORS] ?? ROLE_COLORS.Reporter;
                 return (
-                  <TableRow key={issue.id} onClick={() => navigate(`/issues/${issue.id}`)} className={issue.isOverdue ? 'row-overdue' : ''} sx={{ cursor: 'pointer' }}>
+                  <TableRow
+                    key={issue.id}
+                    onClick={() => navigate(`/issues/${issue.id}`)}
+                    hover={false}
+                    sx={issue.isOverdue ? listTableOverdueRowSx : listTableBodyRowSx}
+                  >
+                    <TableCell width={48}>
+                      <IssueTypeIcon type={issue.type} />
+                    </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip label={issue.defectNo} size="small" sx={{ bgcolor: '#EBE8FC', color: '#4F38F6', fontWeight: 600, fontSize: 11, fontFamily: 'monospace' }} />
-                        {issue.isOverdue && <Chip label="OVERDUE" size="small" sx={{ bgcolor: '#fef2f2', color: '#DC2626', fontWeight: 700, fontSize: 10 }} />}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <IssueKeyCell defectNo={issue.defectNo} />
+                        {issue.isOverdue && (
+                          <Chip
+                            label="OVERDUE"
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: '0.625rem',
+                              fontWeight: 700,
+                              bgcolor: '#FFBDAD',
+                              color: '#BF2600',
+                              borderRadius: '3px',
+                              '& .MuiChip-label': { px: 0.75 },
+                            }}
+                          />
+                        )}
                       </Box>
                     </TableCell>
-                    <TableCell sx={{ maxWidth: 200, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{issue.title}</TableCell>
-                    <TableCell sx={{ color: '#6B6B8A', fontSize: 12 }}>{issue.projectName}</TableCell>
-                    <TableCell><Chip label={role} size="small" sx={{ bgcolor: roleColor.bg, color: roleColor.color, fontWeight: 600, fontSize: 11, height: 22, borderRadius: '99px' }} /></TableCell>
-                    <TableCell sx={{ color: '#6B6B8A', fontSize: 12 }}>{issue.reporterName}</TableCell>
-                    <TableCell sx={{ color: '#6B6B8A', fontSize: 12 }}>{issue.assigneeName}</TableCell>
-                    <TableCell><StatusChip type="priority" value={issue.priority} /></TableCell>
-                    <TableCell><StatusChip type="status" value={issue.status} /></TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>{fmtDate(issue.dueDate)}</TableCell>
+                    <TableCell>
+                      <IssueSummaryCell title={issue.title} />
+                    </TableCell>
+                    <TableCell sx={{ color: issueListColors.textSecondary, maxWidth: 140 }}>{issue.projectName}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={role}
+                        size="small"
+                        sx={{
+                          height: 22,
+                          fontSize: '0.6875rem',
+                          fontWeight: 600,
+                          bgcolor: roleColor.bg,
+                          color: roleColor.color,
+                          border: `1px solid ${roleColor.border}`,
+                          borderRadius: '4px',
+                          '& .MuiChip-label': { px: 1 },
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell><PersonCell name={issue.reporterName} kind="reporter" /></TableCell>
+                    <TableCell><PersonCell name={issue.assigneeName} kind="assignee" /></TableCell>
+                    <TableCell><StatusChip type="priority" value={issue.priority} variant="list" /></TableCell>
+                    <TableCell><StatusChip type="status" value={issue.status} variant="list" /></TableCell>
+                    <TableCell sx={{ color: issueListColors.textSecondary, fontSize: '0.875rem', whiteSpace: 'nowrap' }}>{fmtDate(issue.dueDate)}</TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
         </TableContainer>
-        <Box sx={{ px: 2.5, py: 1.5, borderTop: '1px solid #F3F4F6' }}>
-          <Typography sx={{ fontSize: 12, color: '#6B6B8A' }}>{filtered.length} issue{filtered.length !== 1 ? 's' : ''}</Typography>
+        <Box sx={{ px: 2, py: 1.5, borderTop: `1px solid ${issueListColors.border}`, bgcolor: '#FAFBFC' }}>
+          <Typography sx={{ fontSize: '0.75rem', color: issueListColors.textSecondary }}>
+            {filtered.length} issue{filtered.length !== 1 ? 's' : ''}
+          </Typography>
         </Box>
       </Paper>
     </Box>

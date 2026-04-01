@@ -13,6 +13,7 @@ import LockResetIcon          from '@mui/icons-material/LockReset';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useAuth } from '@store/useAuth';
 import { authApi } from '@services/api';
+import VThinkWordmark from '@components/branding/VThinkWordmark';
 
 type Screen = 'login' | 'forgot' | 'forgot-sent' | 'must-change';
 
@@ -35,13 +36,8 @@ const LeftPanel: React.FC = () => (
 
     {/* ── Logo + status — grouped together at top, tight spacing ── */}
     <Box sx={{ zIndex: 1 }}>
-      {/* Logo */}
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0, mb: 1.25 }}>
-        <Typography component="span" sx={{ fontSize: 28, fontWeight: 800, color: '#fff', lineHeight: 1 }}>v</Typography>
-        <Typography component="span" sx={{ fontSize: 28, fontWeight: 800, color: '#fff', lineHeight: 1 }}>Think</Typography>
-        <Typography component="span" sx={{ fontSize: 16, fontWeight: 700, color: '#f87171', lineHeight: 1 }}>*</Typography>
-        <Typography component="sup" sx={{ fontSize: 9, color: 'rgba(255,255,255,.5)', ml: 0.25 }}>®</Typography>
-      </Box>
+      {/* Logo — shared wordmark + pill on purple */}
+      <VThinkWordmark size="lg" pill sx={{ mb: 1.25 }} />
 
       {/* All Systems Operational pill — immediately below logo */}
       <Box sx={{
@@ -249,10 +245,8 @@ const LoginPage: React.FC = () => {
 
           {/* ── Brand mark above the card (right side) ───────────── */}
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0, mb: 0.5 }}>
-              <Typography component="span" sx={{ fontSize: 26, fontWeight: 800, color: '#E53E3E', lineHeight: 1 }}>v</Typography>
-              <Typography component="span" sx={{ fontSize: 26, fontWeight: 800, color: '#07003C', lineHeight: 1 }}>Think</Typography>
-              <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, color: '#07003C', lineHeight: 1, ml: 0.25 }}>®</Typography>
+            <Box sx={{ display: 'inline-flex', justifyContent: 'center', mb: 0.5 }}>
+              <VThinkWordmark size="md" />
             </Box>
           </Box>
 

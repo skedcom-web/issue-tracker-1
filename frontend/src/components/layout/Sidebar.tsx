@@ -12,6 +12,7 @@ import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -19,6 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useAuth } from '@store/useAuth';
+import VThinkWordmark from '@components/branding/VThinkWordmark';
 
 const SB_EXPANDED = 260;
 const SB_COLLAPSED = 64;
@@ -54,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: <></>,
     adminOnly: true,
     children: [
+      { label: 'Reports', path: '/reports', icon: <AssessmentOutlinedIcon fontSize="small" /> },
       { label: 'Project Setup', path: '/project-setup', icon: <SettingsOutlinedIcon fontSize="small" /> },
       { label: 'Employee Setup', path: '/employee-setup', icon: <PeopleOutlineIcon fontSize="small" /> },
       { label: 'User Management', path: '/user-management', icon: <ShieldOutlinedIcon fontSize="small" /> },
@@ -109,23 +112,19 @@ const Sidebar: React.FC = () => {
         minHeight: 64, flexShrink: 0,
       }}>
         {!collapsed && (
-          <Box>
-            <Typography component="div" sx={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#4F38F6' }}>v</span>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#07003C' }}>Think</span>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#ef4444' }}>*</span>
-              <sup style={{ fontSize: 9, color: '#6B6B8A', marginLeft: 1 }}>®</sup>
-            </Typography>
-            <Typography sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.2px', color: '#6B6B8A', mt: 0.25 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <VThinkWordmark size="sm" sx={{ maxWidth: '100%' }} />
+            <Typography sx={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.2px', color: '#6B6B8A', mt: 0.5 }}>
               Project & Issue Tracker
             </Typography>
           </Box>
         )}
         {collapsed && (
-          <Typography component="div" sx={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#4F38F6' }}>v</span>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#ef4444' }}>*</span>
-          </Typography>
+          <Tooltip title="vThink®" placement="right">
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', px: 0.5 }}>
+              <VThinkWordmark size="xs" />
+            </Box>
+          </Tooltip>
         )}
       </Box>
 

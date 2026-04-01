@@ -2,6 +2,9 @@ import axiosInstance from './axiosInstance';
 import type {
   ApiResponse, User, Project, Issue,
   Employee, DashboardStats, IssueQuery,
+  ExecutiveSummaryReport, ProjectWiseReport, ReporterWorkloadReport,
+  AssigneeWorkloadReport, OverdueAgingReport, IssueRegisterReport,
+  WeeklyTrendReport, PriorityMatrixReport,
 } from '@app-types/index';
 
 // ── Auth ──────────────────────────────────────────────────────────
@@ -113,4 +116,40 @@ export const dashboardApi = {
       '/api/v1/dashboard/stats',
       { params: projectId ? { projectId } : {} },
     ),
+};
+
+export type ReportQueryParams = {
+  projectId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  type?: string;
+  limit?: number;
+};
+
+// ── Reports (Admin / Manager) ───────────────────────────────────
+export const reportsApi = {
+  executiveSummary: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<ExecutiveSummaryReport>>('/api/v1/reports/executive-summary', { params }),
+
+  byProject: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<ProjectWiseReport>>('/api/v1/reports/by-project', { params }),
+
+  byReporter: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<ReporterWorkloadReport>>('/api/v1/reports/by-reporter', { params }),
+
+  byAssignee: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<AssigneeWorkloadReport>>('/api/v1/reports/by-assignee', { params }),
+
+  overdueAging: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<OverdueAgingReport>>('/api/v1/reports/overdue-aging', { params }),
+
+  issueRegister: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<IssueRegisterReport>>('/api/v1/reports/issue-register', { params }),
+
+  weeklyTrend: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<WeeklyTrendReport>>('/api/v1/reports/weekly-trend', { params }),
+
+  priorityMatrix: (params?: ReportQueryParams) =>
+    axiosInstance.get<ApiResponse<PriorityMatrixReport>>('/api/v1/reports/priority-matrix', { params }),
 };

@@ -22,8 +22,9 @@ export declare class UsersService {
                 managerEmpNo: string | null;
             } | null;
             id: string;
-            name: string;
             email: string;
+            employeeId: string | null;
+            name: string;
             role: import(".prisma/client").$Enums.Role;
             department: string | null;
             employeeNumber: string | null;
@@ -31,14 +32,14 @@ export declare class UsersService {
             mustChangePassword: boolean;
             createdAt: Date;
             updatedAt: Date;
-            employeeId: string | null;
         };
         tempPassword: string;
     }>;
     update(id: string, dto: UpdateUserDto): Promise<{
         id: string;
-        name: string;
         email: string;
+        employeeId: string | null;
+        name: string;
         role: import(".prisma/client").$Enums.Role;
         department: string | null;
         employeeNumber: string | null;
@@ -46,7 +47,6 @@ export declare class UsersService {
         mustChangePassword: boolean;
         createdAt: Date;
         updatedAt: Date;
-        employeeId: string | null;
     }>;
     resetPassword(id: string): Promise<{
         tempPassword: string;

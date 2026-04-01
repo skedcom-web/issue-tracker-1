@@ -142,6 +142,138 @@ export interface ActivityLog {
   projectId?: number;
 }
 
+// ── Reports (management) ─────────────────────────────────────────
+export interface ReportFiltersMeta {
+  projectId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  type?: string;
+}
+
+export interface ExecutiveSummaryReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  total: number;
+  overdue: number;
+  totalReopens: number;
+  byStatus: Record<string, number>;
+  byPriority: Record<string, number>;
+  byType: Record<string, number>;
+  bySeverity: Record<string, number>;
+  byProject: { projectId: number; projectName: string; count: number }[];
+}
+
+export interface ProjectWiseReportRow {
+  projectId: number;
+  projectName: string;
+  department?: string;
+  total: number;
+  open: number;
+  inProgress: number;
+  inReview: number;
+  resolved: number;
+  closed: number;
+  reopened: number;
+}
+
+export interface ProjectWiseReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  rows: ProjectWiseReportRow[];
+}
+
+export interface ReporterWorkloadRow {
+  reporterId: string | null;
+  reporterName: string;
+  email?: string;
+  department?: string;
+  role?: string;
+  issueCount: number;
+}
+
+export interface ReporterWorkloadReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  rows: ReporterWorkloadRow[];
+}
+
+export interface AssigneeWorkloadRow {
+  assigneeId: string | null;
+  assigneeName: string;
+  employeeNumber?: string;
+  designation?: string;
+  email?: string;
+  issueCount: number;
+}
+
+export interface AssigneeWorkloadReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  rows: AssigneeWorkloadRow[];
+}
+
+export interface OverdueAgingRow {
+  defectNo: string;
+  title: string;
+  projectName: string;
+  status: string;
+  priority: string;
+  dueDate: string | null;
+  daysOverdue: number;
+  reporterName: string;
+  assigneeName: string;
+}
+
+export interface OverdueAgingReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  total: number;
+  rows: OverdueAgingRow[];
+}
+
+export interface IssueRegisterRow {
+  defectNo: string;
+  title: string;
+  projectName: string;
+  type: string;
+  status: string;
+  priority: string;
+  severity: string;
+  environment?: string | null;
+  module?: string | null;
+  reporterName: string;
+  reporterEmail?: string | null;
+  assigneeName: string;
+  dueDate: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  reopenCount: number;
+}
+
+export interface IssueRegisterReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  rowCount: number;
+  cappedAt: number;
+  rows: IssueRegisterRow[];
+}
+
+export interface WeeklyTrendReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  weeks: { weekStart: string; weekEnd: string; count: number }[];
+}
+
+export interface PriorityMatrixReport {
+  generatedAt: string;
+  filters: ReportFiltersMeta;
+  priorities: string[];
+  statuses: string[];
+  matrix: Record<string, Record<string, number>>;
+}
+
 // ── Issue Filter Query ────────────────────────────────────────────
 export interface IssueQuery {
   page?: number;

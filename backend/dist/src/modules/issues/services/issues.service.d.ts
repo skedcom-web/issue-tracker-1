@@ -86,12 +86,12 @@ export declare class IssuesService {
         byType: Record<string, number>;
         activity: {
             id: number;
-            type: string;
             createdAt: Date;
+            userId: string | null;
             projectId: number | null;
+            type: string;
             issueId: number | null;
             message: string;
-            userId: string | null;
         }[];
     }>;
 }
