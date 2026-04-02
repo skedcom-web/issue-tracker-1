@@ -34,12 +34,12 @@ export declare class IssuesController {
         byType: Record<string, number>;
         activity: {
             id: number;
-            createdAt: Date;
-            userId: string | null;
-            projectId: number | null;
             type: string;
+            createdAt: Date;
+            projectId: number | null;
             issueId: number | null;
             message: string;
+            userId: string | null;
         }[];
     }>>;
     findOne(id: number): Promise<import("@common/types/global/api-response.interface").ApiResponse<{

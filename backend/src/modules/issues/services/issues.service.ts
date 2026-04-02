@@ -72,6 +72,66 @@ export class IssuesService {
     return [...byLower.values()];
   }
 
+  /** Single employee email (assignee / contact) — employee record or linked user. */
+  private async resolveEmployeeNotifyEmail(employeeId: string): Promise<string | null> {
+    const emp = await this.prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { email: true },
+    });
+    const direct = emp?.email?.trim();
+    if (direct) return direct;
+    const linked = await this.prisma.user.findFirst({
+      where: { employeeId },
+      select: { email: true },
+    });
+    return linked?.email?.trim() || null;
+  }
+
+  private fireIssueNewParticipantEmail(
+    issue: {
+      id: number;
+      defectNo: string;
+      title: string;
+      status: string;
+      priority: string;
+      reporterId: string | null;
+      project: { name: string };
+    },
+    role: 'assignee' | 'contact',
+    employeeId: string,
+    actorUserId: string,
+  ) {
+    void (async () => {
+      const toEmail = await this.resolveEmployeeNotifyEmail(employeeId);
+      if (!toEmail) return;
+
+      const reporter = issue.reporterId
+        ? await this.prisma.user.findUnique({
+            where: { id: issue.reporterId },
+            select: { name: true },
+          })
+        : null;
+
+      const actor = await this.prisma.user.findUnique({
+        where: { id: actorUserId },
+        select: { name: true },
+      });
+
+      await this.emailService.sendIssueNewParticipant({
+        toEmail,
+        role,
+        defectNo: issue.defectNo,
+        title: issue.title,
+        projectName: issue.project.name,
+        priority: String(issue.priority),
+        status: String(issue.status),
+        issueId: issue.id,
+        reportedByName: reporter?.name ?? 'A team member',
+        updatedByName: actor?.name,
+      });
+    })();
+  }
+
   private fireIssueCreatedEmail(issue: {
     id: number;
     defectNo: string;
@@ -353,6 +413,9 @@ export class IssuesService {
     const issue = await this.prisma.issue.findUnique({ where: { id } });
     if (!issue) throw new NotFoundException(`Issue #${id} not found`);
 
+    const previousAssigneeId = issue.assigneeId;
+    const previousContactPersonId = issue.contactPersonId;
+
     const previousStatus = issue.status;
 
     // Status transitions via update are allowed but must be valid
@@ -426,6 +489,47 @@ export class IssuesService {
         dto.status,
         userId,
       );
+    }
+
+    // Reassignment / new contact: notify only the newly selected person (edit workflow)
+    if (dto.assigneeId !== undefined) {
+      const nextId = updated.assigneeId;
+      if (nextId && nextId !== previousAssigneeId) {
+        this.fireIssueNewParticipantEmail(
+          {
+            id: updated.id,
+            defectNo: updated.defectNo,
+            title: updated.title,
+            status: updated.status,
+            priority: updated.priority,
+            reporterId: updated.reporterId,
+            project: updated.project,
+          },
+          'assignee',
+          nextId,
+          userId,
+        );
+      }
+    }
+
+    if (dto.contactPersonId !== undefined) {
+      const nextContact = updated.contactPersonId;
+      if (nextContact && nextContact !== previousContactPersonId) {
+        this.fireIssueNewParticipantEmail(
+          {
+            id: updated.id,
+            defectNo: updated.defectNo,
+            title: updated.title,
+            status: updated.status,
+            priority: updated.priority,
+            reporterId: updated.reporterId,
+            project: updated.project,
+          },
+          'contact',
+          nextContact,
+          userId,
+        );
+      }
     }
 
     return this.enrichIssue(updated as unknown as Record<string, unknown>);

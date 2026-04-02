@@ -10,41 +10,41 @@ export declare class UsersController {
         user: {
             employee: {
                 id: string;
+                createdAt: Date;
+                updatedAt: Date;
                 email: string | null;
                 employeeNumber: string;
                 active: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 employeeName: string;
                 designation: string | null;
                 managerEmpNo: string | null;
             } | null;
             id: string;
-            email: string;
-            employeeId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             name: string;
-            role: import(".prisma/client").$Enums.Role;
             department: string | null;
+            email: string;
+            role: import(".prisma/client").$Enums.Role;
             employeeNumber: string | null;
             active: boolean;
             mustChangePassword: boolean;
-            createdAt: Date;
-            updatedAt: Date;
+            employeeId: string | null;
         };
         tempPassword: string;
     }>>;
     update(id: string, dto: UpdateUserDto): Promise<import("@common/types/global/api-response.interface").ApiResponse<{
         id: string;
-        email: string;
-        employeeId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         name: string;
-        role: import(".prisma/client").$Enums.Role;
         department: string | null;
+        email: string;
+        role: import(".prisma/client").$Enums.Role;
         employeeNumber: string | null;
         active: boolean;
         mustChangePassword: boolean;
-        createdAt: Date;
-        updatedAt: Date;
+        employeeId: string | null;
     }>>;
     resetPassword(id: string): Promise<import("@common/types/global/api-response.interface").ApiResponse<{
         tempPassword: string;

@@ -35,6 +35,18 @@ export declare class EmailService {
         issueId: number;
         changedByName?: string;
     }): Promise<void>;
+    sendIssueNewParticipant(opts: {
+        toEmail: string;
+        role: 'assignee' | 'contact';
+        defectNo: string;
+        title: string;
+        projectName: string;
+        priority: string;
+        status: string;
+        issueId: number;
+        reportedByName: string;
+        updatedByName?: string;
+    }): Promise<void>;
     private escapeHtml;
     private send;
 }

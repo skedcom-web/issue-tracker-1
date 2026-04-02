@@ -62,6 +62,49 @@ let IssuesService = class IssuesService {
         }
         return [...byLower.values()];
     }
+    async resolveEmployeeNotifyEmail(employeeId) {
+        const emp = await this.prisma.employee.findUnique({
+            where: { id: employeeId },
+            select: { email: true },
+        });
+        const direct = emp?.email?.trim();
+        if (direct)
+            return direct;
+        const linked = await this.prisma.user.findFirst({
+            where: { employeeId },
+            select: { email: true },
+        });
+        return linked?.email?.trim() || null;
+    }
+    fireIssueNewParticipantEmail(issue, role, employeeId, actorUserId) {
+        void (async () => {
+            const toEmail = await this.resolveEmployeeNotifyEmail(employeeId);
+            if (!toEmail)
+                return;
+            const reporter = issue.reporterId
+                ? await this.prisma.user.findUnique({
+                    where: { id: issue.reporterId },
+                    select: { name: true },
+                })
+                : null;
+            const actor = await this.prisma.user.findUnique({
+                where: { id: actorUserId },
+                select: { name: true },
+            });
+            await this.emailService.sendIssueNewParticipant({
+                toEmail,
+                role,
+                defectNo: issue.defectNo,
+                title: issue.title,
+                projectName: issue.project.name,
+                priority: String(issue.priority),
+                status: String(issue.status),
+                issueId: issue.id,
+                reportedByName: reporter?.name ?? 'A team member',
+                updatedByName: actor?.name,
+            });
+        })();
+    }
     fireIssueCreatedEmail(issue) {
         void (async () => {
             const toEmails = await this.collectIssueNotifyEmails(issue.reporterId, issue.assigneeId);
@@ -294,6 +337,8 @@ let IssuesService = class IssuesService {
         const issue = await this.prisma.issue.findUnique({ where: { id } });
         if (!issue)
             throw new common_1.NotFoundException(`Issue #${id} not found`);
+        const previousAssigneeId = issue.assigneeId;
+        const previousContactPersonId = issue.contactPersonId;
         const previousStatus = issue.status;
         if (dto.status && dto.status !== issue.status) {
             const allowed = ALLOWED_TRANSITIONS[issue.status] ?? [];
@@ -352,6 +397,34 @@ let IssuesService = class IssuesService {
                 assigneeId: updated.assigneeId,
                 project: updated.project,
             }, previousStatus, dto.status, userId);
+        }
+        if (dto.assigneeId !== undefined) {
+            const nextId = updated.assigneeId;
+            if (nextId && nextId !== previousAssigneeId) {
+                this.fireIssueNewParticipantEmail({
+                    id: updated.id,
+                    defectNo: updated.defectNo,
+                    title: updated.title,
+                    status: updated.status,
+                    priority: updated.priority,
+                    reporterId: updated.reporterId,
+                    project: updated.project,
+                }, 'assignee', nextId, userId);
+            }
+        }
+        if (dto.contactPersonId !== undefined) {
+            const nextContact = updated.contactPersonId;
+            if (nextContact && nextContact !== previousContactPersonId) {
+                this.fireIssueNewParticipantEmail({
+                    id: updated.id,
+                    defectNo: updated.defectNo,
+                    title: updated.title,
+                    status: updated.status,
+                    priority: updated.priority,
+                    reporterId: updated.reporterId,
+                    project: updated.project,
+                }, 'contact', nextContact, userId);
+            }
         }
         return this.enrichIssue(updated);
     }

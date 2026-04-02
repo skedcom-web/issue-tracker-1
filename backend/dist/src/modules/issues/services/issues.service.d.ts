@@ -8,6 +8,8 @@ export declare class IssuesService {
     private emailService;
     constructor(prisma: PrismaService, projectsService: ProjectsService, emailService: EmailService);
     private collectIssueNotifyEmails;
+    private resolveEmployeeNotifyEmail;
+    private fireIssueNewParticipantEmail;
     private fireIssueCreatedEmail;
     private fireIssueStatusChangedEmail;
     private enrichIssue;
@@ -86,12 +88,12 @@ export declare class IssuesService {
         byType: Record<string, number>;
         activity: {
             id: number;
-            createdAt: Date;
-            userId: string | null;
-            projectId: number | null;
             type: string;
+            createdAt: Date;
+            projectId: number | null;
             issueId: number | null;
             message: string;
+            userId: string | null;
         }[];
     }>;
 }

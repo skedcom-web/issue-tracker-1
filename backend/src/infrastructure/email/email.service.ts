@@ -248,6 +248,74 @@ export class EmailService {
     );
   }
 
+  /**
+   * Notify the new assignee or contact person after edit (reassignment).
+   * Mirrors the create-issue detail block; only the recipient receives this mail.
+   */
+  async sendIssueNewParticipant(opts: {
+    toEmail: string;
+    role: 'assignee' | 'contact';
+    defectNo: string;
+    title: string;
+    projectName: string;
+    priority: string;
+    status: string;
+    issueId: number;
+    reportedByName: string;
+    updatedByName?: string;
+  }) {
+    const t = opts.toEmail?.trim();
+    if (!t) return;
+
+    const appUrl = process.env.APP_URL ?? 'http://localhost:5173';
+    const issueUrl = `${appUrl}/issues/${opts.issueId}`;
+    const safeTitle = this.escapeHtml(opts.title);
+
+    const intro =
+      opts.role === 'assignee'
+        ? `<p class="text">
+        You have been assigned as the <strong>assignee</strong> for the following issue (reassignment).
+        Please review it in vThink Issue Tracker and proceed with the necessary actions.
+      </p>`
+        : `<p class="text">
+        You have been set as the <strong>contact person</strong> for the following issue.
+        You may be contacted for clarification or additional details about this work item.
+      </p>`;
+
+    const byRow = opts.updatedByName
+      ? `<div class="box-row"><span class="box-label">Updated by</span><span class="box-value">${this.escapeHtml(opts.updatedByName)}</span></div>`
+      : '';
+
+    const body = `
+      <p class="greeting">Hello,</p>
+      ${intro}
+      <div class="box">
+        <div class="box-row"><span class="box-label">Project</span><span class="box-value">${this.escapeHtml(opts.projectName)}</span></div>
+        <div class="box-row"><span class="box-label">Defect / ID</span><span class="box-value">${this.escapeHtml(opts.defectNo)}</span></div>
+        <div class="box-row"><span class="box-label">Title</span><span class="box-value">${safeTitle}</span></div>
+        <div class="box-row"><span class="box-label">Priority</span><span class="box-value">${this.escapeHtml(opts.priority)}</span></div>
+        <div class="box-row"><span class="box-label">Status</span><span class="box-value">${this.escapeHtml(opts.status)}</span></div>
+        <div class="box-row"><span class="box-label">Reported by</span><span class="box-value">${this.escapeHtml(opts.reportedByName)}</span></div>
+        ${byRow}
+      </div>
+      <div class="btn-wrap">
+        <a href="${issueUrl}" class="btn">Open issue →</a>
+      </div>
+      <p class="text" style="font-size:12px;color:#9CA3AF;word-break:break-all;">
+        ${issueUrl}
+      </p>
+      <p class="text" style="margin-bottom:0;">
+        Regards,<br/><strong>Project/Issue Tracker</strong>
+      </p>`;
+
+    const roleBit = opts.role === 'assignee' ? 'Assigned to you' : 'You are contact person';
+    const shortTitle =
+      opts.title.length > 42 ? `${opts.title.slice(0, 39)}…` : opts.title;
+    const subject = `[vThink Tracker] ${roleBit}: ${opts.defectNo} — ${shortTitle}`;
+
+    await this.send({ to: t, subject, html: this.wrap(body) });
+  }
+
   private escapeHtml(s: string): string {
     return s
       .replace(/&/g, '&amp;')
